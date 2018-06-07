@@ -47,7 +47,7 @@ library(patchwork) # удобное расположение графиков р
 В наборе данных для каждой страны указано, сколько белка получает ежедневно житель из различных продуктов.
 
 ```{r}
-protein <- import('Europenaprotein.csv')
+protein <- import('data/Europenaprotein.csv')
 skim(protein)
 ```
 
@@ -60,10 +60,8 @@ protein_no_country <- protein %>%
   column_to_rownames(var = 'Country')
 ```
 
-привет
 Дополнение в виде функции `as.vector` нужно потому, что функция `scale` возвращает матрицу,
 а каждый столбец должен быть вектором :)
-
 
 Выполним кластеризацию методом k-средних с помощью функции `kmeans`.
 
@@ -72,6 +70,7 @@ protein_no_country <- protein %>%
 Сохраним результат кластеризации в список `k_means_protein`.
 
 ```{r}
+set.seed(13)
 k_means_protein <- kmeans(protein_no_country, centers = 3)
 k_means_protein
 ```
@@ -139,6 +138,9 @@ g2 <- fviz_nbclust(protein_no_country, kmeans, method = 'silhouette') +
        x = 'Число кластеров')
 g2
 ```
+
+По рисунку видно что оптимальное число кластеров - 2
+(between_SS / total_SS =  46.9 %) - чем больше тем лучше
 
 Обозначения:
 
@@ -214,9 +216,9 @@ fviz_dist(protein_dist)
 Посчитайте матрицу расстояний для таблицы `usa_stand` и визуализируйте её.
 
 ```{r}
-# usa <- USArrests
-# usa_dist <- dist(___, method = 'euclidian')
-# fviz_dist(___)
+usa <- USArrests
+usa_dist <- dist(usa, method = 'euclidian')
+fviz_dist(usa_dist)
 ```
 
 Полученную матрицу расстояний можно передадать функции `hclust()`, которая кластеризует данные.
@@ -271,14 +273,14 @@ glimpse(protein_plus2)
 - Визуализируйте результат кластеризации и сделайте подписи цветными.
 
 ```{r}
-# usa_hcl <- hcut(___, k = ___)
-# fviz_dend(___,
-#          cex = 0.5, # размер подписи
-#          color_labels_by_k = ___) # цвет подписей по группам
+usa_hcl <- hcut(USArrests, k = 4)
+fviz_dend(usa_hcl,
+          cex = 0.5, # размер подписи
+          color_labels_by_k = TRUE) # цвет подписей по группам
 ```
 
 Иерархичская кластеризация полезна и для визуализаций корреляций.
-Если в функции `corrplot()` из одноимённого пакета указать аргумента `order = hclust`,
+Если в функции `corrplot()` из одноимённого пакета указать аргумент `order = hclust`,
 то мы получим сгруппированные по кластерам переменные.
 Для красоты добавим ещё один аргумент — `addrect = 3`.
 Он обведёт прямоугольниками указанное число кластеров.
@@ -294,16 +296,16 @@ corrplot(protein_cor, order = 'hclust', addrect = 3)
 Замените кружочки на квадраты, передав аргументу `method` значение `shade`.
 
 ```{r}
-# usa_cor <- cor(___)
-# corrplot(___, order = ___, addrect = ___, ___ = ___)
+usa_cor <- cor(USArrests)
+corrplot(usa_cor, order = 'hclust', addrect = 2, method = 'shade')
 ```
 
 * Упражнение 4.
 
 Добавьте к исходным данным `usa` кластеры, полученные с помощью иерархической кластеризации:
 ```{r}
-# usa_plus2 <- mutate(___, cluster = ___)
-# glimpse(___)
+usa_plus2 <- mutate(USArrests, cluster = usa_hcl$cluster)
+glimpse(usa_plus2)
 ```
 
 Визуализации [кластеров в известных наборах данных] (https://cran.r-project.org/web/packages/dendextend/vignettes/Cluster_Analysis.html)
@@ -388,6 +390,7 @@ protein_pca$rotation[, 1]
 ```
 
 
+
 Визуализируем данные в осях первых двух главных компонент.
 Для этого воспользуемся функцией `fviz_pca_ind()` из пакета `factoextra`.
 Рисовать будем `protein_pca`, а аргумент `repel = TRUE` укажем для того,
@@ -406,9 +409,9 @@ fviz_pca_ind(protein_pca, repel = TRUE)
 Проследите, чтобы подписи точек на графике были аккуратными :)
 
 ```{r}
-# usa_pca <- prcomp(___, scale. = ___)
-# usa_pca
-# fviz_pca_ind(___, repel = ___)
+usa_pca <- prcomp(usa, scale = TRUE)
+usa_pca
+fviz_pca_ind(usa_pca, repel = TRUE)
 ```
 
 - Какой процент дисперсии объясняют в сумме первые две главные компоненты?
@@ -435,7 +438,7 @@ fviz_pca_biplot(protein_pca, repel = TRUE)
 исходных переменных.
 
 ```{r}
-# fviz_pca_biplot(___, ___ = TRUE)
+fviz_pca_biplot(usa_pca, scale = TRUE)
 ```
 
 - Какая исходная переменная входит в первую главную компоненту с большим отрицательным весом?
@@ -458,7 +461,7 @@ fviz_eig(protein_pca)
 Обратите внимание, что у функции появился новый аргумент :)
 
 ```{r}
-# fviz_eig(___, addlabels = TRUE)
+fviz_eig(protein_pca, addlabels = TRUE)
 ```
 
 - Какой процент разброса в данных объясняют в сумме третья и четвёртая глаыне компоненты?
