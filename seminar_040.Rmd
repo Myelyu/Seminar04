@@ -60,6 +60,7 @@ protein_no_country <- protein %>%
   column_to_rownames(var = 'Country')
 ```
 
+привет
 Дополнение в виде функции `as.vector` нужно потому, что функция `scale` возвращает матрицу,
 а каждый столбец должен быть вектором :)
 
